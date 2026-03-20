@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>draw w me 🌻</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+:root {
+  --gold: #f5c842;
+  --soft-gold: #fde98e;
+  --rose: #e8637a;
+  --deep-rose: #8b2033;
+  --cream: #fffaf0;
+  --dark: #2b1a0e;
+  --bg: #1a0f05;
+  --green: #4a7c2f;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Press Start 2P', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--cream);
+}
+
+/* ── STARS ── */
+#starfield { position:fixed; inset:0; z-index:0; pointer-events:none; }
+.star { position:absolute; background:var(--soft-gold); animation:twinkle 2s infinite alternate; }
+@keyframes twinkle { from{opacity:.1} to{opacity:.9} }
+
+/* ── FLOATERS ── */
+#floaters { position:fixed; inset:0; z-index:1; pointer-events:none; }
+.floater { position:absolute; animation:floatUp linear infinite; pointer-events:none; }
+@keyframes floatUp {
+  0%  { transform:translateY(110vh); opacity:.8; }
+  100%{ transform:translateY(-10vh); opacity:0; }
+}
+
+/* ── LAYOUT ── */
+.app {
+  position: relative;
+  z-index: 10;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ── HEADER ── */
+.header {
+  text-align: center;
+  animation: popIn .7s ease both;
+}
+@keyframes popIn {
+  from{opacity:0;transform:scale(.8)}
+  to{opacity:1;transform:scale(1)}
+}
+.header-tag {
+  display:inline-block;
+  background:var(--rose);
+  color:#fff; font-size:7px;
+  padding:6px 14px; margin-bottom:12px;
+  box-shadow:4px 4px 0 var(--deep-rose);
+  letter-spacing:1.5px;
+}
+.header h1 {
+  font-size: clamp(14px, 4vw, 24px);
+  color: var(--gold);
+  text-shadow: 4px 4px 0 #7a5a00, 7px 7px 0 #3d2d00;
+  line-height: 1.5;
+  letter-spacing: 2px;
+}
+.header h1 span { color:#fff; text-shadow:3px 3px 0 var(--rose),6px 6px 0 var(--deep-rose); }
+
+/* ── WHO AM I ── */
+.who-panel {
+  display: flex;
+  gap: 12px;
+  animation: popIn .7s .2s ease both;
+  opacity: 0;
+}
+.who-btn {
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 10px 16px;
+  border: none;
+  box-shadow: 4px 4px 0;
+  transition: transform .1s, box-shadow .1s;
+  letter-spacing: 1px;
+}
+.who-btn:hover { transform:translate(2px,2px); box-shadow:2px 2px 0; }
+.who-btn:active { transform:translate(4px,4px); box-shadow:0 0 0; }
+.who-btn.me   { background:var(--gold); color:var(--dark); box-shadow-color:#7a5a00; box-shadow:4px 4px 0 #7a5a00; }
+.who-btn.amna { background:var(--rose); color:#fff; box-shadow:4px 4px 0 var(--deep-rose); }
+.who-btn.selected { outline: 3px solid #fff; }
+
+/* ── PIXEL BORDER ── */
+.pixel-border {
+  width:100%; height:6px;
+  background: repeating-linear-gradient(90deg,var(--rose) 0,var(--rose) 8px,var(--gold) 8px,var(--gold) 16px);
+}
+
+/* ── MAIN GRID ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 16px;
+  width: 100%;
+  animation: popIn .8s .3s ease both;
+  opacity: 0;
+}
+@media(max-width:680px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+/* ── CANVAS AREA ── */
+.canvas-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.canvas-label {
+  font-size: 7px;
+  color: var(--soft-gold);
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 #7a5a00;
+}
+
+#draw-canvas {
+  border: 4px solid var(--dark);
+  box-shadow: 6px 6px 0 var(--dark), 10px 10px 0 var(--rose);
+  cursor: crosshair;
+  image-rendering: pixelated;
+  background: var(--cream);
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 1 / 0.7;
+  display: block;
+}
+
+/* ── TOOLBAR ── */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.tool-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.tool-label {
+  font-size: 6px;
+  color: var(--soft-gold);
+  letter-spacing: 1px;
+}
+
+.color-swatch {
+  width: 22px; height: 22px;
+  border: 3px solid var(--dark);
+  cursor: pointer;
+  image-rendering: pixelated;
+  transition: transform .1s;
+  flex-shrink: 0;
+}
+.color-swatch:hover { transform: scale(1.2); }
+.color-swatch.selected { border-color: #fff; box-shadow: 0 0 0 2px var(--dark); }
+
+.size-btn {
+  cursor: pointer;
+  background: var(--dark);
+  border: 3px solid var(--soft-gold);
+  color: var(--soft-gold);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  padding: 4px 8px;
+  transition: transform .1s, background .1s;
+}
+.size-btn:hover, .size-btn.selected { background: var(--gold); color: var(--dark); border-color: var(--dark); }
+
+.tool-btn {
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 6px;
+  padding: 6px 10px;
+  border: 3px solid var(--dark);
+  transition: transform .1s, box-shadow .1s;
+  box-shadow: 3px 3px 0 var(--dark);
+}
+.tool-btn:hover { transform:translate(1px,1px); box-shadow:2px 2px 0 var(--dark); }
+.tool-btn:active { transform:translate(3px,3px); box-shadow:0 0 0; }
+.tool-btn.eraser { background:#ddd; color:var(--dark); }
+.tool-btn.clear  { background:var(--rose); color:#fff; }
+.tool-btn.selected { outline: 2px solid #fff; }
+
+/* ── SIDE PANEL ── */
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Miss you button */
+.miss-btn {
+  cursor: pointer;
+  background: var(--rose);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 16px 12px;
+  border: none;
+  box-shadow: 6px 6px 0 var(--deep-rose);
+  text-align: center;
+  line-height: 1.8;
+  transition: transform .1s, box-shadow .1s;
+  letter-spacing: 1px;
+  animation: beat 2s ease infinite;
+  width: 100%;
+}
+.miss-btn:hover { transform:translate(3px,3px); box-shadow:3px 3px 0 var(--deep-rose); animation:none; }
+.miss-btn:active { transform:translate(6px,6px); box-shadow:0 0 0; }
+@keyframes beat {
+  0%,100%{transform:scale(1)} 50%{transform:scale(1.03)}
+}
+
+/* Feed */
+.feed-box {
+  background: #110a02;
+  border: 4px solid var(--dark);
+  box-shadow: 4px 4px 0 var(--rose);
+  padding: 12px;
+  flex: 1;
+  min-height: 200px;
+  max-height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.feed-title {
+  font-size: 7px;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 #7a5a00;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.feed-empty {
+  font-family: 'VT323', monospace;
+  font-size: 16px;
+  color: #5a3a1a;
+  text-align: center;
+  margin-top: 20px;
+}
+.feed-item {
+  background: #1f1005;
+  border-left: 4px solid var(--rose);
+  padding: 8px 10px;
+  animation: slideIn .4s ease both;
+}
+@keyframes slideIn {
+  from{opacity:0;transform:translateX(-10px)}
+  to{opacity:1;transform:translateX(0)}
+}
+.feed-item .fi-who {
+  font-size: 7px;
+  color: var(--rose);
+  margin-bottom: 4px;
+}
+.feed-item .fi-msg {
+  font-family: 'VT323', monospace;
+  font-size: 17px;
+  color: var(--soft-gold);
+  line-height: 1.4;
+}
+.feed-item .fi-time {
+  font-size: 6px;
+  color: #5a3a1a;
+  margin-top: 4px;
+}
+
+/* ── NOTIFICATION TOAST ── */
+#toast {
+  position: fixed;
+  top: 20px; left: 50%;
+  transform: translateX(-50%) translateY(-120px);
+  background: var(--rose);
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  padding: 14px 22px;
+  box-shadow: 6px 6px 0 var(--deep-rose);
+  z-index: 999;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  text-align: center;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  pointer-events: none;
+  max-width: 90vw;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* online dot */
+.online-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 7px;
+  color: var(--soft-gold);
+}
+.dot {
+  width: 8px; height: 8px;
+  background: #4caf50;
+  box-shadow: 0 0 6px #4caf50;
+  animation: pulse 1.5s ease infinite;
+}
+@keyframes pulse {
+  0%,100%{opacity:1} 50%{opacity:.4}
+}
+
+/* scrollbar */
+.feed-box::-webkit-scrollbar { width:4px; }
+.feed-box::-webkit-scrollbar-track { background:#110a02; }
+.feed-box::-webkit-scrollbar-thumb { background:var(--rose); }
+</style>
+</head>
+<body>
+
+<div id="starfield"></div>
+<div id="floaters"></div>
+<div id="toast">💌 Amna misses you!<br>go check on her 🌻</div>
+
+<div class="app">
+
+  <div class="pixel-border"></div>
+
+  <div class="header">
+    <div class="header-tag">🎨 OUR LITTLE WORLD</div>
+    <h1>draw w <span>me</span> 🌻</h1>
+  </div>
+
+  <!-- WHO ARE YOU -->
+  <div class="who-panel">
+    <button class="who-btn me" onclick="setUser('me')">I'm <span style="color:var(--dark)">Abdur</span> 👦</button>
+    <button class="who-btn amna" onclick="setUser('amna')">I'm <span>Amna</span> 🌸</button>
+  </div>
+
+  <div class="pixel-border"></div>
+
+  <!-- MAIN -->
+  <div class="main-grid">
+
+    <!-- CANVAS SIDE -->
+    <div class="canvas-wrap">
+      <div class="canvas-label">🖼 shared canvas — draw anything!</div>
+      <canvas id="draw-canvas" width="680" height="476"></canvas>
+
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="tool-group">
+          <span class="tool-label">COLOR</span>
+          <!-- Abdur = gold/dark palette, Amna = rose/pink palette, shared colors -->
+          <div class="color-swatch selected" style="background:#2b1a0e" data-color="#2b1a0e" onclick="setColor(this)"></div>
+          <div class="color-swatch" style="background:#e8637a" data-color="#e8637a" onclick="setColor(this)"></div>
+          <div class="color-swatch" style="background:#f5c842" data-color="#f5c842" onclick="setColor(this)"></div>
+          <div class="color-swatch" style="background:#4a7c2f" data-color="#4a7c2f" onclick="setColor(this)"></div>
+          <div class="color-swatch" style="background:#5b8dd9" data-color="#5b8dd9" onclick="setColor(this)"></div>
+          <div class="color-swatch" style="background:#fff" data-color="#ffffff" onclick="setColor(this)" style="border-color:#aaa"></div>
+          <div class="color-swatch" style="background:#ff9f43" data-color="#ff9f43" onclick="setColor(this)"></div>
+          <div class="color-swatch" style="background:#c8a2c8" data-color="#c8a2c8" onclick="setColor(this)"></div>
+        </div>
+        <div class="tool-group">
+          <span class="tool-label">SIZE</span>
+          <button class="size-btn selected" data-size="4" onclick="setSize(this)">S</button>
+          <button class="size-btn" data-size="8" onclick="setSize(this)">M</button>
+          <button class="size-btn" data-size="16" onclick="setSize(this)">L</button>
+        </div>
+        <div class="tool-group">
+          <button class="tool-btn eraser" id="eraser-btn" onclick="toggleEraser()">✦ ERASER</button>
+          <button class="tool-btn clear" onclick="clearCanvas()">✕ CLEAR ALL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDE PANEL -->
+    <div class="side-panel">
+      <div class="online-row">
+        <div class="dot"></div>
+        <span>live canvas — synced</span>
+      </div>
+
+      <!-- MISS YOU BUTTON -->
+      <button class="miss-btn" onclick="sendMissYou()">
+        💌 tell them<br>you miss them
+      </button>
+
+      <!-- FEED -->
+      <div class="feed-title">💬 miss-you feed</div>
+      <div class="feed-box" id="feed">
+        <div class="feed-empty">no messages yet...<br>be the first 🌻</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pixel-border"></div>
+
+</div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getDatabase, ref, onValue, push, set, onChildAdded } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC8Ka7gb4mmcouOMcKiWuIpqKGkcm1CN5g",
+  authDomain: "draw-w-me-2e66d.firebaseapp.com",
+  databaseURL: "https://draw-w-me-2e66d-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "draw-w-me-2e66d",
+  storageBucket: "draw-w-me-2e66d.firebasestorage.app",
+  messagingSenderId: "698149985946",
+  appId: "1:698149985946:web:7a74c3f43c6e365ab4c923"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+/* ── canvas setup ── */
+const canvas = document.getElementById('draw-canvas');
+const ctx    = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+let drawing = false;
+let currentColor = '#2b1a0e';
+let currentSize  = 4;
+let isEraser = false;
+let currentUser  = null;
+let firstFeed    = true;
+
+/* pixel snap */
+function snap(v, size) { return Math.floor(v / size) * size; }
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width  / r.width;
+  const scaleY = canvas.height / r.height;
+  const src = e.touches ? e.touches[0] : e;
+  return {
+    x: snap((src.clientX - r.left) * scaleX, currentSize),
+    y: snap((src.clientY - r.top)  * scaleY, currentSize)
+  };
+}
+
+function drawPixel(x, y, color, size) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, size, size);
+}
+
+function pushStroke(x, y, color, size) {
+  push(ref(db, 'strokes'), { x, y, color, size, t: Date.now() });
+}
+
+function startDraw(e) {
+  e.preventDefault();
+  drawing = true;
+  const {x,y} = getPos(e);
+  const col = isEraser ? '#fffaf0' : currentColor;
+  drawPixel(x, y, col, currentSize);
+  pushStroke(x, y, col, currentSize);
+}
+function moveDraw(e) {
+  e.preventDefault();
+  if (!drawing) return;
+  const {x,y} = getPos(e);
+  const col = isEraser ? '#fffaf0' : currentColor;
+  drawPixel(x, y, col, currentSize);
+  pushStroke(x, y, col, currentSize);
+}
+function stopDraw() { drawing = false; }
+
+canvas.addEventListener('mousedown',  startDraw);
+canvas.addEventListener('mousemove',  moveDraw);
+canvas.addEventListener('mouseup',    stopDraw);
+canvas.addEventListener('mouseleave', stopDraw);
+canvas.addEventListener('touchstart', startDraw, {passive:false});
+canvas.addEventListener('touchmove',  moveDraw,  {passive:false});
+canvas.addEventListener('touchend',   stopDraw);
+
+/* ── listen to all strokes ── */
+onChildAdded(ref(db, 'strokes'), snap => {
+  const d = snap.val();
+  drawPixel(d.x, d.y, d.color, d.size);
+});
+
+/* ── clear canvas ── */
+window.clearCanvas = () => {
+  if (!confirm('Clear the whole canvas for both of you?')) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#fffaf0';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  set(ref(db,'strokes'), null);
+};
+
+/* ── miss you feed ── */
+let isFirstLoad = true;
+onChildAdded(ref(db, 'missyou'), snap => {
+  const d = snap.val();
+  if (isFirstLoad) { renderFeedItem(d, false); return; }
+  renderFeedItem(d, true);
+
+  // toast only for the OTHER person
+  if (currentUser && currentUser !== d.from) {
+    showToast(d.from === 'amna'
+      ? `💌 Amna misses you!\ngo check on her 🌻`
+      : `💌 Abdur misses you!\nhe's thinking of you 💛`);
+  }
+});
+setTimeout(() => { isFirstLoad = false; }, 2000);
+
+function renderFeedItem(d, animate) {
+  const feed = document.getElementById('feed');
+  const empty = feed.querySelector('.feed-empty');
+  if (empty) empty.remove();
+
+  const who  = d.from === 'amna' ? '🌸 Amna' : '👦 Abdur';
+  const time = new Date(d.t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  const item = document.createElement('div');
+  item.className = 'feed-item';
+  item.style.animationPlayState = animate ? 'running' : 'paused';
+  item.innerHTML = `
+    <div class="fi-who">${who}</div>
+    <div class="fi-msg">${d.msg}</div>
+    <div class="fi-time">${time}</div>
+  `;
+  feed.prepend(item);
+}
+
+window.sendMissYou = () => {
+  if (!currentUser) { alert('Pick who you are first! 👆'); return; }
+  const msgs = [
+    "i miss you 🥺💛",
+    "thinking of you rn 🌻",
+    "come draw with me! 🎨",
+    "i miss your energy 💕",
+    "just wanted you to know 💛"
+  ];
+  const msg = msgs[Math.floor(Math.random() * msgs.length)];
+  push(ref(db, 'missyou'), { from: currentUser, msg, t: Date.now() });
+};
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg.replace('\n','<br>');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+/* ── user selection ── */
+window.setUser = (who) => {
+  currentUser = who;
+  document.querySelectorAll('.who-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector(`.who-btn.${who}`).classList.add('selected');
+  // set user color defaults
+  if (who === 'amna') setColorByVal('#e8637a');
+  else setColorByVal('#2b1a0e');
+};
+
+/* ── toolbar ── */
+window.setColor = (el) => {
+  isEraser = false;
+  document.getElementById('eraser-btn').classList.remove('selected');
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  currentColor = el.dataset.color;
+};
+
+function setColorByVal(val) {
+  document.querySelectorAll('.color-swatch').forEach(s => {
+    s.classList.toggle('selected', s.dataset.color === val);
+  });
+  currentColor = val;
+  isEraser = false;
+}
+
+window.setSize = (el) => {
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  currentSize = parseInt(el.dataset.size);
+};
+
+window.toggleEraser = () => {
+  isEraser = !isEraser;
+  document.getElementById('eraser-btn').classList.toggle('selected', isEraser);
+  if (isEraser) {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+  }
+};
+
+/* ── stars & floaters ── */
+const sf = document.getElementById('starfield');
+for (let i=0;i<90;i++) {
+  const s=document.createElement('div'); s.className='star';
+  const sz=[2,2,4,4,6][Math.floor(Math.random()*5)];
+  s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${1.5+Math.random()*2.5}s;`;
+  sf.appendChild(s);
+}
+const emojis=['💛','🌻','❤️','💕','🌼','✨','💖','🌸'];
+const fd=document.getElementById('floaters');
+for(let i=0;i<16;i++){
+  const f=document.createElement('div'); f.className='floater';
+  f.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+  f.style.cssText=`left:${Math.random()*100}%;font-size:${12+Math.random()*18}px;animation-duration:${8+Math.random()*10}s;animation-delay:${Math.random()*10}s;`;
+  fd.appendChild(f);
+}
+
+/* fill canvas bg */
+ctx.fillStyle='#fffaf0';
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+</script>
+</body>
+</html>
